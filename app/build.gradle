@@ -16,16 +16,13 @@ android {
     buildTypes {
         release {
             minifyEnabled = false
-            proguardEnabled = false
         }
     }
     kotlinOptions {
-        jbrTarget = "17"
+        jvmTarget = "17"
     }
 }
 
 dependencies {
-    implementation("android.core.ktl:stdlib:1.9.24")
-    implementation("android.x:core:core-ktx:1.13.1")
-    implementation("android.appcompat:appcompat:1.7.0")
+    implementation("androidx.core:core-ktx:1.13.1")
 }
