@@ -1,5 +1,6 @@
 plugins {
     id "com.android.application"
+    id "org.jetbrains.kotlin.android"
 }
 
 android {
@@ -15,13 +16,13 @@ android {
     buildTypes {
         release {
             minifyEnabled = false
-            proguareEnabled = false
+            proguardEnabled = false
         }
     }
 }
 
 dependencies {
     implementation(android.app)
-    implementation(android.core.ktl)
-    implementation(android.x:webkit:webview:1.4.0)
+    implementation("android.core.ktl")
+    implementation("android.x:webkit:webview:1.4.0")
 }
