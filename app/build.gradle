@@ -1,5 +1,5 @@
 plugins {
-    id 'com.android.application'
+    id "com.android.application"
 }
 
 android {
@@ -15,22 +15,13 @@ android {
     buildTypes {
         release {
             minifyEnabled = false
-            proguardEnabled = false
+            proguareEnabled = false
         }
     }
 }
 
-dsp tree 'com.android.android'.android { }
-p.specion.userConfig.managa.cachnang"
-
 dependencies {
-    implementation (android.app)
-    implementation (android.core.ktl)
-
-    // WebView provided by android.x webkit package
-    implementation (android.x:webkit:webview:1.4.0)
-
-    releaseImplementation (android.app)
-
-    testImplementation (jjunit)
+    implementation(android.app)
+    implementation(android.core.ktl)
+    implementation(android.x:webkit:webview:1.4.0)
 }
