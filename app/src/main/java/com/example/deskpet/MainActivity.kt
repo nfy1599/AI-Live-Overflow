@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import com.example.deskpet.service.OverlayService
 
 class MainActivity : Activity() {
     private val OVERLAY_PERMISSION_CODE = 1001
