@@ -1,0 +1,33 @@
+# Gradle
+.gradle/
+build/
+*.apk
+*.aar
+*.jks
+*.base64
+*.config
+
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build outputs
+app/build/
+out/
+*.o
+*.a
+*.so
+
+# Secrets
+.env
+/.incremental-avt.img
+secrets.properties
+local.properties
