@@ -8,11 +8,11 @@
   body { width: 100vw; height: 100vh; display: flex; align-items: flex-end; justify-content: center; }
   #bubble {
     position: absolute; top: 2px; left: 50%; transform: translateX(-50%);
-    min-width: 60px; max-width: 160px;
+    min-width: 60px; max-width: 170px;
     background: rgba(255,255,255,0.95);
-    border: 2px solid #ffb6d9; border-radius: 16px;
-    padding: 8px 12px; font-size: 12px; color: #333;
-    box-shadow: 0 4px 12px rgba(255,105,180,0.3);
+    border: 2px solid #b39ddb; border-radius: 16px;
+    padding: 8px 12px; font-size: 12px; color: #4a148c;
+    box-shadow: 0 4px 12px rgba(120,60,200,0.3);
     opacity: 0; transition: opacity 0.3s; text-align: center; white-space: nowrap;
   }
   #bubble.show { opacity: 1; }
@@ -24,15 +24,42 @@
 <img id="pet" src="pet.png" alt="桌宠">
 <script>
   var petEngine = petEngine || {};
+  var _t = null;
   function showBubble(text) {
     var b = document.getElementById('bubble');
     b.textContent = text;
     b.style.whiteSpace = 'nowrap';
     b.classList.add('show');
-    clearTimeout(petEngine._t);
-    petEngine._t = setTimeout(function(){ b.classList.remove('show'); }, 4000);
+    clearTimeout(_t);
+    _t = setTimeout(function(){ b.classList.remove('show'); }, 4000);
+  }
+  var APP_LINES = {
+    'com.tencent.mm': '又在刷微信，跟谁聊这么嗨～',
+    'com.tencent.mobileqq': 'QQ消息弹个不停，我都要吃醋了',
+    'com.sina.weibo': '刷微博刷得眼睛累不累呀',
+    'com.ss.android.ugc.aweme': '抖音一刷停不下来啦！',
+    'tv.danmaku.bili': '又在看B站，带我一个嘛',
+    'com.zhihu.android': '刷知乎，学霸人设稳住了',
+    'com.netease.cloudmusic': '听歌呐，什么心情呀～',
+    'com.eg.android.AlipayGphone': '支付宝，花呗记得还哦',
+    'com.tencent.mobileqq': 'QQ消息弹个不停，我都要吃醋了',
+    'com.android.settings': '翻设置翻什么呀，别把我关了～',
+    'com.google.android.youtube': '油管逛起来啦',
+    'com.whatsapp': 'WhatsApp忙什么呢',
+    'com.instagram.android': '刷ins，都是美照诶'
+  };
+  var FALLBACK = '你打开了个新东西，我在偷偷看～';
+  function appName(pkg) {
+    try {
+      var parts = pkg.split('.');
+      return parts[parts.length-1];
+    } catch(e){ return pkg; }
   }
   petEngine.showMessage = showBubble;
+  petEngine.onForegroundApp = function(pkg) {
+    var line = APP_LINES[pkg] || (FALLBACK.replace('个', '个'));
+    showBubble(line);
+  };
   petEngine.onTap = function(){ showBubble('嘿嘿，摸我干嘛～'); };
   petEngine.onDoubleTap = function(){ showBubble('不许偷偷点两下！'); };
   petEngine.onLongPress = function(){ showBubble('好啦好啦，我听话～'); };
