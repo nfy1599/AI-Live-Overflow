@@ -7,51 +7,27 @@
   html, body { margin: 0; padding: 0; overflow: hidden; background: transparent; }
   body { width: 100vw; height: 100vh; display: flex; align-items: flex-end; justify-content: center; }
   #bubble {
-    position: absolute; top: 4px; left: 50%; transform: translateX(-50%);
-    min-width: 60px; max-width: 110px;
+    position: absolute; top: 2px; left: 50%; transform: translateX(-50%);
+    min-width: 60px; max-width: 160px;
     background: rgba(255,255,255,0.95);
     border: 2px solid #ffb6d9; border-radius: 16px;
-    padding: 8px 12px; font-size: 10px; color: #333;
+    padding: 8px 12px; font-size: 12px; color: #333;
     box-shadow: 0 4px 12px rgba(255,105,180,0.3);
-    opacity: 0; transition: opacity 0.3s; text-align: center;
+    opacity: 0; transition: opacity 0.3s; text-align: center; white-space: nowrap;
   }
   #bubble.show { opacity: 1; }
-  svg { width: 90px; height: 110px; display: block; }
+  img { width: 90px; height: auto; display: block; }
 </style>
 </head>
 <body>
 <div id="bubble">你好呀，我是你的桌宠～</div>
-<svg viewBox="0 0 180 220" xmlns="http://www.w3.org/2000/svg">
-  <!-- 身体 -->
-  <ellipse cx="90" cy="170" rx="60" ry="50" fill="#ffb6d9"/>
-  <!-- 头 -->
-  <circle cx="90" cy="85" r="48" fill="#ffd1e8"/>
-  <!-- 耳朵 -->
-  <polygon points="52,60 38,20 66,45" fill="#ffb6d9"/>
-  <polygon points="128,60 142,20 114,45" fill="#ffb6d9"/>
-  <polygon points="56,55 46,30 64,48" fill="#ff8fbf"/>
-  <polygon points="124,55 134,30 116,48" fill="#ff8fbf"/>
-  <!-- 眼睛 -->
-  <circle cx="74" cy="86" r="7" fill="#333"/>
-  <circle cx="106" cy="86" r="7" fill="#333"/>
-  <circle cx="77" cy="83" r="2.5" fill="#fff"/>
-  <circle cx="109" cy="83" r="2.5" fill="#fff"/>
-  <!-- 腮红 -->
-  <ellipse cx="62" cy="100" rx="10" ry="6" fill="#ff9ec9" opacity="0.7"/>
-  <ellipse cx="118" cy="100" rx="10" ry="6" fill="#ff9ec9" opacity="0.7"/>
-  <!-- 嘴 -->
-  <path d="M80 104 Q90 114 100 104" stroke="#e4688f" stroke-width="3" fill="none" stroke-linecap="round"/>
-  <!-- 肚子 -->
-  <ellipse cx="90" cy="180" rx="32" ry="26" fill="#fff" opacity="0.85"/>
-  <!-- 手臂 -->
-  <ellipse cx="38" cy="160" rx="12" ry="22" fill="#ffb6d9" transform="rotate(25 38 160)"/>
-  <ellipse cx="142" cy="160" rx="12" ry="22" fill="#ffb6d9" transform="rotate(-25 142 160)"/>
-</svg>
+<img id="pet" src="pet.png" alt="桌宠">
 <script>
   var petEngine = petEngine || {};
   function showBubble(text) {
     var b = document.getElementById('bubble');
     b.textContent = text;
+    b.style.whiteSpace = 'nowrap';
     b.classList.add('show');
     clearTimeout(petEngine._t);
     petEngine._t = setTimeout(function(){ b.classList.remove('show'); }, 4000);
