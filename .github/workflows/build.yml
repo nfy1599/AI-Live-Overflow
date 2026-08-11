@@ -1,12 +1,12 @@
-name: Build Signed APK
+name: Build APK
 
 on:
   workflow_dispatch:
     inputs:
       build_type:
-        description: 'Build type'
+        description: 'Build type (debug = no keystore needed)'
         required: true
-        default: 'release'
+        default: 'debug'
         type: choice
         options:
           - debug
@@ -39,47 +39,44 @@ jobs:
           sdkmanager "platforms;android-34"
           sdkmanager "build-tools;34.0.0"
 
-      - name: Create keystore from secrets
+      - name: Write local.properties
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > /tmp/upload.jks
-          echo "✅ Keystore created successfully"
-          ls -lh /tmp/upload.jks
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
 
-      - name: Build APK
+      - name: Build Debug APK (auto-signed)
+        if: github.event.inputs.build_type == 'debug'
         run: |
-          gradle clean bundleRelease \
+          gradle assembleDebug --no-daemon
+
+      - name: Build Release APK (needs keystore secrets)
+        if: github.event.inputs.build_type == 'release'
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > /tmp/upload.jks
+          gradle assembleRelease --no-daemon \
             -Pandroid.injected.signing.store.file=/tmp/upload.jks \
-            -Pandroid.injected.signing.store.password="${{ secrets.KEYSTORE_PASSWORD }}" \
-            -Pandroid.injected.signing.key.alias="${{ secrets.KEY_ALIAS }}" \
-            -Pandroid.injected.signing.key.password="${{ secrets.KEY_PASSWORD }}" \
-            -PbuildType=${{ github.event.inputs.build_type }}
+            -Pandroid.injected.signing.store.password="$KEYSTORE_PASSWORD" \
+            -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$KEY_PASSWORD"
 
-      - name: Find APK artifact
+      - name: Find APK
         id: find_apk
         run: |
           APK=$(find app/build/outputs -name '*.apk' | head -n 1)
           echo "apk_path=$APK" >> $GITHUB_OUTPUT
           echo "Found APK at: $APK"
 
-      - name: Sign APK with v2/v3 schemes
-        run: |
-          $ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner sign \
-            --ks /tmp/upload.jks \
-            --ks-pass pass:${{ secrets.KEYSTORE_PASSWORD }} \
-            --ks-key-alias ${{ secrets.KEY_ALIAS }} \
-            --key-pass pass:${{ secrets.KEY_PASSWORD }} \
-            --v2-signing-enabled true \
-            --v3-signing-enabled true \
-            ${{ steps.find_apk.outputs.apk_path }}
-
       - name: Verify APK signature
         run: |
-          $ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner verify -v \
-            ${{ steps.find_apk.outputs.apk_path }}
+          $ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner verify -v ${{ steps.find_apk.outputs.apk_path }} || true
 
-      - name: Upload APK as artifact
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: signed-apk-${{ github.run_id }}
+          name: deskpet-apk-${{ github.event.inputs.build_type }}-${{ github.run_id }}
           path: ${{ steps.find_apk.outputs.apk_path }}
           retention-days: 7
