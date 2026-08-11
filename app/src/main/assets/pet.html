@@ -7,16 +7,16 @@
   html, body { margin: 0; padding: 0; overflow: hidden; background: transparent; }
   body { width: 100vw; height: 100vh; display: flex; align-items: flex-end; justify-content: center; }
   #bubble {
-    position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
-    min-width: 90px; max-width: 170px;
+    position: absolute; top: 4px; left: 50%; transform: translateX(-50%);
+    min-width: 60px; max-width: 110px;
     background: rgba(255,255,255,0.95);
     border: 2px solid #ffb6d9; border-radius: 16px;
-    padding: 8px 12px; font-size: 13px; color: #333;
+    padding: 8px 12px; font-size: 10px; color: #333;
     box-shadow: 0 4px 12px rgba(255,105,180,0.3);
     opacity: 0; transition: opacity 0.3s; text-align: center;
   }
   #bubble.show { opacity: 1; }
-  svg { width: 180px; height: 220px; display: block; }
+  svg { width: 90px; height: 110px; display: block; }
 </style>
 </head>
 <body>
