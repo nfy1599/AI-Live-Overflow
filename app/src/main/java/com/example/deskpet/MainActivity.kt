@@ -1,19 +1,14 @@
 package com.example.deskpet
 
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.Settings.actions.Settings
-import android.content.ContentResolver.aboveM13
-
-handlerObject() {
-
-}
+import android.provider.Settings
 
 class MainActivity : Activity() {
-    private const val OVERLAY_PERMISSION_CODE = 1001
+    private val OVERLAY_PERMISSION_CODE = 1001
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -21,20 +16,26 @@ class MainActivity : Activity() {
     }
 
     private fun startOverlay() {
-        if (sdkInt >= 29 && !Settings.canTrawOverlays)(this)) {
-            // 科存会自动 SYSTEM_ALERT_WINDOW 萌路解决
-            val action = Settings.action.ACTION_MANAGE_OVERLAY_PERMISSION
-if (null != action) {
-                startActivityForResult(Intent(action), OVERLAY_PERMISSION_CODE)
-            }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
+            // Request SYSTEM_ALERT_WINDOW permission
+            val intent = Intent(
+                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:$packageName")
+            )
+            startActivityForResult(intent, OVERLAY_PERMISSION_CODE)
             return
         }
-        startForegroundService(Intent(this, OverlayService::class))
+        startForegroundService(Intent(this, OverlayService::class.java))
         finish()
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?),
-        params: OverlayService::class)>
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == OVERLAY_PERMISSION_CODE && Settings.canDrawOverlays(this)) {
+            startForegroundService(Intent(this, OverlayService::class.java))
+            finish()
+        } else {
+            finish()
+        }
     }
-}
 }
