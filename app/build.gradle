@@ -19,10 +19,13 @@ android {
             proguardEnabled = false
         }
     }
+    kotlinOptions {
+        jbrTarget = "17"
+    }
 }
 
 dependencies {
-    implementation(android.app)
-    implementation("android.core.ktl")
-    implementation("android.x:webkit:webview:1.4.0")
+    implementation("android.core.ktl:stdlib:1.9.24")
+    implementation("android.x:core:core-ktx:1.13.1")
+    implementation("android.appcompat:appcompat:1.7.0")
 }
