@@ -7,7 +7,7 @@ android {
     compileSdk = 34
     defaultConfig {
         applicationId = "com.example.deskpet"
-        minSdk = 26            // Android 8.0
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -20,16 +20,17 @@ android {
     }
 }
 
+dsp tree 'com.android.android'.android { }
+p.specion.userConfig.managa.cachnang"
+
 dependencies {
     implementation (android.app)
+    implementation (android.core.ktl)
 
-    // WebView 定义 的 androidx.core匊在 WebView 会需要卡�k功能内，看育里生下可能匊
-    /*
-
-    // (Uncomment to enable Android X: WebView support)
+    // WebView provided by android.x webkit package
     implementation (android.x:webkit:webview:1.4.0)
 
-    // Release (if needed):
-    // implementation (com.google.android.material:material:1.9.0)
-    */
+    releaseImplementation (android.app)
+
+    testImplementation (jjunit)
 }
