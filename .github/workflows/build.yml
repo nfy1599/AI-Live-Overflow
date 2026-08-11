@@ -1,7 +1,7 @@
 name: Build Signed APK
 
 on:
-  workflow_dispatch:  # 手动触发，不自动编译
+  workflow_dispatch:
     inputs:
       build_type:
         description: 'Build type'
@@ -15,73 +15,71 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Set up JDK 11
-      uses: actions/setup-java@v4
-      with:
-        java-version: '11'
-        distribution: 'temurin'
-        cache: gradle
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
 
-    - name: Make gradlew executable
-      run: chmod +x ./gradlew
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
 
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
-    - name: Install Android SDK components
-      run: |
-        sdkmanager --update
-        sdkmanager "platforms;android-34"
-        sdkmanager "build-tools;34.0.0"
+      - name: Install Android SDK components
+        run: |
+          sdkmanager --update
+          sdkmanager "platforms;android-34"
+          sdkmanager "build-tools;34.0.0"
 
-    - name: Create keystore from secrets
-      run: |
-        echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > /tmp/upload.jks
-        echo "✅ Keystore created successfully"
-        ls -lh /tmp/upload.jks
+      - name: Create keystore from secrets
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > /tmp/upload.jks
+          echo "✅ Keystore created successfully"
+          ls -lh /tmp/upload.jks
 
-    - name: Build APK
-      run: |
-        ./gradlew clean build -PbuildType=${{ github.event.inputs.build_type }} \
-          -Pandroid.injected.signing.store.file=/tmp/upload.jks \
-          -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} \
-          -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} \
-          -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }}
+      - name: Build APK
+        run: |
+          gradle clean bundleRelease \
+            -Pandroid.injected.signing.store.file=/tmp/upload.jks \
+            -Pandroid.injected.signing.store.password="${{ secrets.KEYSTORE_PASSWORD }}" \
+            -Pandroid.injected.signing.key.alias="${{ secrets.KEY_ALIAS }}" \
+            -Pandroid.injected.signing.key.password="${{ secrets.KEY_PASSWORD }}" \
+            -PbuildType=${{ github.event.inputs.build_type }}
 
-    - name: Sign APK with v2/v3 schemes
-      run: |
-        $ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner sign \
-          --ks /tmp/upload.jks \
-          --ks-pass pass:${{ secrets.KEYSTORE_PASSWORD }} \
-          --ks-key-alias ${{ secrets.KEY_ALIAS }} \
-          --key-pass pass:${{ secrets.KEY_PASSWORD }} \
-          --v2-signing-enabled true \
-          --v3-signing-enabled true \
-          app/build/outputs/apk/release/app-release-unsigned.apk
+      - name: Find APK artifact
+        id: find_apk
+        run: |
+          APK=$(find app/build/outputs -name '*.apk' | head -n 1)
+          echo "apk_path=$APK" >> $GITHUB_OUTPUT
+          echo "Found APK at: $APK"
 
-    - name: Verify APK signature
-      run: |
-        $ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner verify -v \
-          app/build/outputs/apk/release/app-release-unsigned.apk
+      - name: Sign APK with v2/v3 schemes
+        run: |
+          $ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner sign \
+            --ks /tmp/upload.jks \
+            --ks-pass pass:${{ secrets.KEYSTORE_PASSWORD }} \
+            --ks-key-alias ${{ secrets.KEY_ALIAS }} \
+            --key-pass pass:${{ secrets.KEY_PASSWORD }} \
+            --v2-signing-enabled true \
+            --v3-signing-enabled true \
+            ${{ steps.find_apk.outputs.apk_path }}
 
-    - name: Upload APK as artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: signed-apk-${{ github.run_id }}
-        path: app/build/outputs/apk/release/app-release-unsigned.apk
-        retention-days: 7
+      - name: Verify APK signature
+        run: |
+          $ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner verify -v \
+            ${{ steps.find_apk.outputs.apk_path }}
 
-    - name: Create release (if tag)
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: softprops/action-gh-release@v1
-      with:
-        files: app/build/outputs/apk/release/app-release-unsigned.apk
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload APK as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: signed-apk-${{ github.run_id }}
+          path: ${{ steps.find_apk.outputs.apk_path }}
+          retention-days: 7
