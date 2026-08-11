@@ -1,0 +1,35 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace = "com.example.deskpet"
+    compileSdk = 34
+    defaultConfig {
+        applicationId = "com.example.deskpet"
+        minSdk = 26            // Android 8.0
+        targetSdk = 34
+        versionCode = 1
+        versionName = "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled = false
+            proguardEnabled = false
+        }
+    }
+}
+
+dependencies {
+    implementation (android.app)
+
+    // WebView 定义 的 androidx.core匊在 WebView 会需要卡�k功能内，看育里生下可能匊
+    /*
+
+    // (Uncomment to enable Android X: WebView support)
+    implementation (android.x:webkit:webview:1.4.0)
+
+    // Release (if needed):
+    // implementation (com.google.android.material:material:1.9.0)
+    */
+}
