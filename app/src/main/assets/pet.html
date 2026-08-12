@@ -5,26 +5,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   html, body { margin: 0; padding: 0; overflow: hidden; background: transparent; }
-  body { width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
+  body { width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; overflow: hidden; }
   #bubble {
-    position: absolute; top: 2px; left: 50%; transform: translateX(-50%);
+    position: relative; margin-bottom: -14px; z-index: 2;
     min-width: 60px; max-width: 240px;
     background: rgba(255,255,255,0.95);
     border: 2px solid #b39ddb; border-radius: 16px;
-    padding: 8px 12px; font-size: 13px; line-height: 1.4; color: #4a148c;
+    padding: 6px 10px; font-size: 13px; line-height: 1.4; color: #4a148c;
     box-shadow: 0 4px 12px rgba(120,60,200,0.3);
     opacity: 0; transition: opacity 0.3s; text-align: center; word-break: break-word;
-  }
+}
   #bubble.show { opacity: 1; }
   .clawd {
-    width: 110px; height: 110px;
+    width: 160px; height: 160px;
     display: block; margin: 0 auto;
   }
 </style>
 </head>
 <body>
 <div id="bubble">你好呀，我是你的桌宠～</div>
-<svg class="clawd" xmlns="http://www.w3.org/2000/svg" viewBox="-15 -25 45 45" >
+<svg class="clawd" xmlns="http://www.w3.org/2000/svg" viewBox="0 2 15 15" >
   <defs>
     <style>
       /* 10-Second Idle Loop — Looking Around + Scratching (no yawn) */
