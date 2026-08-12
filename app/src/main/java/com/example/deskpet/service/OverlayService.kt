@@ -23,8 +23,8 @@ class OverlayService : Service() {
     companion object {
         private const val CHANNEL_ID = "pet_overlay_channel"
         private const val NOTIFICATION_ID = 1001
-        private const val PET_SIZE_DP = 260
-        private const val PET_HEIGHT_DP = 220
+        private const val PET_SIZE_DP = 180
+        private const val PET_HEIGHT_DP = 200
         private const val POLL_MS = 3000L
     }
     override fun onBind(intent: Intent?): IBinder? = null
