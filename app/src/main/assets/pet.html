@@ -61,17 +61,15 @@ var petEngine = petEngine || {};
     sleepTimer.push(setTimeout(function(){ showState('sleeping'); }, 11800));
   }
   // 待机/彩蛋逻辑
-  var eggTimer=null, busy=false, eggBusy=false, tapCount=0, tapReset=null;
+  var eggTimer=null, busy=false, errorBusy=false, tapCount=0, tapReset=null;
   function showLook(){
     if(!asleep){ clearTimers(); }
-    eggBusy=false;
     showState('look');
     clearTimeout(eggTimer);
     idleTimer=setTimeout(startSleep, IDLE_MS);
   }
   function playEgg(){
     clearTimers(); clearTimeout(eggTimer);
-    eggBusy=true;
     if(asleep) asleep=false;
     var pick=__EGG__[Math.floor(Math.random()*__EGG__.length)];
     if(pick==='coffee'){ __MAP__.coffee=(Math.random()<0.5)?'clawd-coffee-hand':'clawd-coffee-head-flip'; }
@@ -81,11 +79,11 @@ var petEngine = petEngine || {};
   }
   function triggerError(){
     clearTimers(); clearTimeout(eggTimer);
-    eggBusy=true;
+    errorBusy=true;
     if(asleep) asleep=false;
     showState('error');
     showBubble('呜啊！你戳我戳到冒烟啦！再戳我可要生气咯——乖，让我歇会儿嘛～', true);
-    eggTimer=setTimeout(showLook, 4500);
+    eggTimer=setTimeout(function(){ errorBusy=false; showLook(); }, 4500);
   }
   function onActivity(msg){
     clearTimers(); clearTimeout(eggTimer);
@@ -95,7 +93,7 @@ var petEngine = petEngine || {};
   // 点按：单点随机彩蛋 + 计数
   petEngine.showMessage=showBubble;
   petEngine.onTap=function(){
-    if(eggBusy) return;   // error/彩蛋播完前点击无反应（强制走完）
+    if(errorBusy) return;   // 仅error强制播完
     clearTimers(); clearTimeout(tapReset); tapCount=0;
     if(asleep){           // 睡眠序列中 → 惊醒，不触发彩蛋
       asleep=false;
@@ -110,7 +108,7 @@ var petEngine = petEngine || {};
     if(tapCount>=6){ tapCount=0; triggerError(); return; }
     playEgg();
   };
-  petEngine.onDoubleTap=function(){ onActivity(); showBubble('不许偷偷点两下！');};
+  petEngine.onDoubleTap=function(){ if(errorBusy) return; onActivity(); petEngine.onTap(); };
   petEngine.onLongPress=function(){ onActivity(); showBubble('好啦好啦，我听话～');};
   petEngine.onForegroundApp=function(pkg){
     onActivity();
@@ -141,3 +139,4 @@ var petEngine = petEngine || {};
 </script>
 </body>
 </html>
+
