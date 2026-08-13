@@ -61,15 +61,17 @@ var petEngine = petEngine || {};
     sleepTimer.push(setTimeout(function(){ showState('sleeping'); }, 11800));
   }
   // 待机/彩蛋逻辑
-  var eggTimer=null, busy=false, tapCount=0, tapReset=null;
+  var eggTimer=null, busy=false, eggBusy=false, tapCount=0, tapReset=null;
   function showLook(){
     if(!asleep){ clearTimers(); }
+    eggBusy=false;
     showState('look');
     clearTimeout(eggTimer);
     idleTimer=setTimeout(startSleep, IDLE_MS);
   }
   function playEgg(){
     clearTimers(); clearTimeout(eggTimer);
+    eggBusy=true;
     if(asleep) asleep=false;
     var pick=__EGG__[Math.floor(Math.random()*__EGG__.length)];
     if(pick==='coffee'){ __MAP__.coffee=(Math.random()<0.5)?'clawd-coffee-hand':'clawd-coffee-head-flip'; }
@@ -79,6 +81,7 @@ var petEngine = petEngine || {};
   }
   function triggerError(){
     clearTimers(); clearTimeout(eggTimer);
+    eggBusy=true;
     if(asleep) asleep=false;
     showState('error');
     showBubble('呜啊！你戳我戳到冒烟啦！再戳我可要生气咯——乖，让我歇会儿嘛～', true);
@@ -92,8 +95,16 @@ var petEngine = petEngine || {};
   // 点按：单点随机彩蛋 + 计数
   petEngine.showMessage=showBubble;
   petEngine.onTap=function(){
-    clearTimers();
-    if(asleep) asleep=false;
+    if(eggBusy) return;   // error/彩蛋播完前点击无反应（强制走完）
+    clearTimers(); clearTimeout(tapReset); tapCount=0;
+    if(asleep){           // 睡眠序列中 → 惊醒，不触发彩蛋
+      asleep=false;
+      showState('wake');
+      showBubble('哎呀！谁戳醒我的～');
+      setTimeout(function(){ showLook(); }, 1500);
+      return;
+    }
+    // 待机30秒内 → 彩蛋 + 连点计数
     tapCount++;
     clearTimeout(tapReset); tapReset=setTimeout(function(){ tapCount=0; }, 1500);
     if(tapCount>=6){ tapCount=0; triggerError(); return; }
