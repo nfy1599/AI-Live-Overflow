@@ -4,27 +4,27 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-  html, body { margin: 0; padding: 0; overflow: hidden; background: transparent; }
+html, body { margin: 0; padding: 0; overflow: hidden; background: transparent; }
   body { width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; overflow: hidden; }
   #bubble {
-    position: relative; margin-bottom: -14px; z-index: 2;
+    position: relative; margin-bottom: -10px; z-index: 2;
     min-width: 60px; max-width: 240px;
     background: rgba(255,255,255,0.95);
     border: 2px solid #b39ddb; border-radius: 16px;
     padding: 6px 10px; font-size: 13px; line-height: 1.4; color: #4a148c;
     box-shadow: 0 4px 12px rgba(120,60,200,0.3);
     opacity: 0; transition: opacity 0.3s; text-align: center; word-break: break-word;
-}
-  #bubble.show { opacity: 1; }
-  .clawd {
-    width: 130px; height: 130px;
-    display: block; margin: 0 auto;
   }
+  #bubble.show { opacity: 1; }
+  .stage { width: 130px; height: 130px; position: relative; }
+  .state { display: none; }
+  .state svg { width: 130px; height: 130px; display: block; }
 </style>
 </head>
 <body>
 <div id="bubble">想我了吗～</div>
-<svg class="clawd" xmlns="http://www.w3.org/2000/svg" viewBox="-2 1 19 19" >
+<div class="stage">
+<div class="state" id="st-look"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-15 -25 45 45" >
   <defs>
     <style>
       /* 10-Second Idle Loop — Looking Around + Scratching (no yawn) */
@@ -139,22 +139,787 @@
     </g>
   </g>
 </svg>
+</div><div class="state" id="st-yawn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-15 -25 45 45" >
+  <defs>
+    <style>
+      /* 5-Second Yawn — One-shot, ends in squashed/eyes-closed pose */
+      .action-body {
+        transform-origin: 7.5px 13px;
+        animation: action-body-yawn 3.8s ease-in-out forwards;
+      }
 
+      .breathe-anim {
+        transform-origin: 7.5px 13px;
+        animation: breathe 3.2s infinite ease-in-out;
+      }
+
+      .shadow-anim {
+        transform-origin: 7.5px 15.5px;
+        animation: shadow-yawn 3.8s ease-in-out forwards;
+      }
+
+      .arm-l {
+        transform-origin: 1px 10px;
+        animation: arm-l-yawn 3.8s ease-in-out forwards;
+      }
+
+      .arm-r {
+        transform-origin: 14px 10px;
+        animation: arm-r-yawn 3.8s ease-in-out forwards;
+      }
+
+      .eyes-look {
+        animation: eye-track-yawn 3.8s ease-in-out forwards;
+      }
+
+      .eyes-blink {
+        transform-origin: 7.5px 9px;
+        animation: eye-blink-yawn 3.8s linear forwards;
+      }
+
+      .yawn-mouth {
+        transform-origin: 7.5px 11px;
+        animation: yawn-mouth-anim 3.8s ease-in-out forwards;
+        opacity: 0;
+      }
+
+      .yawn-tear {
+        animation: tear-fall 3.8s ease-in-out forwards;
+        opacity: 0;
+      }
+
+      /* --- Keyframes --- */
+
+      @keyframes breathe {
+        0%, 100% { transform: scale(1, 1) translate(0, 0); }
+        50% { transform: scale(1.02, 0.98) translate(0, 0.5px); }
+      }
+
+      /* Body: neutral → stretch up → peak → squash down (hold from 78%) */
+      @keyframes action-body-yawn {
+        0%, 12% { transform: scale(1, 1) translate(0, 0); }
+        32% { transform: scale(0.95, 1.05) translate(0, -1px); }
+        50% { transform: scale(0.9, 1.1) translate(0, -2px); }
+        78%, 100% { transform: scale(1.05, 0.95) translate(0, 1px); }
+      }
+
+      @keyframes shadow-yawn {
+        0%, 12% { transform: scaleX(1); opacity: 0.5; }
+        32% { transform: scaleX(0.95); opacity: 0.45; }
+        50% { transform: scaleX(0.9); opacity: 0.4; }
+        78%, 100% { transform: scaleX(1.05); opacity: 0.55; }
+      }
+
+      /* Eyes look slightly up during stretch, then neutral */
+      @keyframes eye-track-yawn {
+        0%, 18% { transform: translate(0, 0); }
+        32%, 68% { transform: translate(0, -1px); }
+        82%, 100% { transform: translate(0, 0); }
+      }
+
+      /* Blink once, then eyes shut for the yawn and stay shut */
+      @keyframes eye-blink-yawn {
+        0%, 18% { transform: scaleY(1); }
+        24% { transform: scaleY(0.1); }
+        30% { transform: scaleY(1); }
+        42%, 100% { transform: scaleY(0.1); }
+      }
+
+      /* Both arms stretch outward during yawn, then relax down */
+      @keyframes arm-l-yawn {
+        0%, 12% { transform: translate(0, 0) rotate(0deg); }
+        38% { transform: translate(-1px, -2px) rotate(45deg); }
+        50% { transform: translate(-2px, -3px) rotate(80deg); }
+        78%, 100% { transform: translate(0, 1px) rotate(-15deg); }
+      }
+
+      @keyframes arm-r-yawn {
+        0%, 12% { transform: translate(0, 0) rotate(0deg); }
+        38% { transform: translate(1px, -2px) rotate(-45deg); }
+        50% { transform: translate(2px, -3px) rotate(-80deg); }
+        78%, 100% { transform: translate(0, 1px) rotate(15deg); }
+      }
+
+      /* Mouth opens wide then closes */
+      @keyframes yawn-mouth-anim {
+        0%, 18% { opacity: 0; transform: scale(0.1); }
+        32% { opacity: 1; transform: scale(0.5, 0.2); }
+        50% { opacity: 1; transform: scale(1.1, 1.4); }
+        68% { opacity: 1; transform: scale(0.6, 0.4); }
+        80%, 100% { opacity: 0; transform: scale(0.1); }
+      }
+
+      /* Tiny tear slides down during peak yawn */
+      @keyframes tear-fall {
+        0%, 45% { opacity: 0; transform: translateY(0); }
+        50% { opacity: 1; transform: translateY(0); }
+        68% { opacity: 1; transform: translateY(2.5px); }
+        80%, 100% { opacity: 0; transform: translateY(3px); }
+      }
+    </style>
+  </defs>
+
+  <!-- Ground Shadow -->
+  <rect id="ground-shadow" class="shadow-anim" x="3" y="15" width="9" height="1" fill="#000000" opacity="0.5"/>
+
+  <!-- Static Legs -->
+  <g id="legs" fill="#DE886D">
+    <rect x="3" y="12" width="1" height="3"/>
+    <rect x="5" y="12" width="1" height="3"/>
+    <rect x="9" y="12" width="1" height="3"/>
+    <rect x="11" y="12" width="1" height="3"/>
+  </g>
+
+  <!-- Animated Upper Body -->
+  <g class="action-body">
+    <g class="breathe-anim">
+      <!-- Torso -->
+      <rect id="torso" x="2" y="6" width="11" height="7" fill="#DE886D"/>
+      <!-- Left Arm -->
+      <g class="arm-l">
+        <rect x="0" y="9" width="2" height="2" fill="#DE886D"/>
+      </g>
+      <!-- Right Arm -->
+      <g class="arm-r">
+        <rect x="13" y="9" width="2" height="2" fill="#DE886D"/>
+      </g>
+      <!-- Yawning Mouth (hidden initially) -->
+      <rect class="yawn-mouth" x="6" y="10" width="3" height="2" fill="#000000"/>
+      <!-- Eyes -->
+      <g class="eyes-look" fill="#000000">
+        <g class="eyes-blink">
+          <rect x="4" y="8" width="1" height="2"/>
+          <rect x="10" y="8" width="1" height="2"/>
+        </g>
+      </g>
+      <!-- Tear -->
+      <rect class="yawn-tear" x="3.5" y="10" width="1" height="1" fill="#40C4FF"/>
+    </g>
+  </g>
+</svg>
+</div><div class="state" id="st-doze"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-15 -25 45 45" >
+  <defs>
+    <style>
+      /* Dozing — looping gentle breathing in yawn-end squashed pose, eyes shut */
+      .doze-body {
+        transform-origin: 7.5px 13px;
+        animation: doze-breathe 4s infinite ease-in-out;
+      }
+
+      .doze-shadow {
+        transform-origin: 7.5px 15.5px;
+        animation: doze-shadow 4s infinite ease-in-out;
+      }
+
+      .eyes-shut {
+        transform-origin: 7.5px 9px;
+        transform: scaleY(0.1);
+        transition: transform 0.3s ease-out;
+      }
+
+      .arm-l-doze {
+        transform-origin: 1px 10px;
+        transform: translate(0px, 1px) rotate(-15deg);
+      }
+
+      .arm-r-doze {
+        transform-origin: 14px 10px;
+        transform: translate(0px, 1px) rotate(15deg);
+      }
+
+      @keyframes doze-breathe {
+        0%, 100% { transform: scale(1.05, 0.95) translate(0, 1px); }
+        50% { transform: scale(1.08, 0.92) translate(0, 1.8px); }
+      }
+
+      @keyframes doze-shadow {
+        0%, 100% { transform: scaleX(1.05); opacity: 0.55; }
+        50% { transform: scaleX(1.08); opacity: 0.5; }
+      }
+    </style>
+  </defs>
+
+  <!-- Ground Shadow -->
+  <rect class="doze-shadow" x="3" y="15" width="9" height="1" fill="#000000" opacity="0.55"/>
+
+  <!-- Static Legs -->
+  <g id="legs" fill="#DE886D">
+    <rect x="3" y="12" width="1" height="3"/>
+    <rect x="5" y="12" width="1" height="3"/>
+    <rect x="9" y="12" width="1" height="3"/>
+    <rect x="11" y="12" width="1" height="3"/>
+  </g>
+
+  <!-- Dozing Body (squashed yawn-end pose + gentle breathing) -->
+  <g id="accessory-anchor" class="doze-body">
+    <!-- Torso -->
+    <rect x="2" y="6" width="11" height="7" fill="#DE886D"/>
+    <!-- Left Arm (relaxed down) -->
+    <g class="arm-l-doze">
+      <rect x="0" y="9" width="2" height="2" fill="#DE886D"/>
+    </g>
+    <!-- Right Arm (relaxed down) -->
+    <g class="arm-r-doze">
+      <rect x="13" y="9" width="2" height="2" fill="#DE886D"/>
+    </g>
+    <!-- Eyes shut (JS can open via style.transform override) -->
+    <g id="eyes-doze" class="eyes-shut" fill="#000000">
+      <rect x="4" y="8" width="1" height="2"/>
+      <rect x="10" y="8" width="1" height="2"/>
+    </g>
+  </g>
+</svg>
+</div><div class="state" id="st-collapse"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-15 -25 45 45" >
+  <defs>
+    <style>
+      /* 0.8s Collapse — One-shot transition from yawn-end to sploot */
+      .body-collapse {
+        transform-origin: 7.5px 13px;
+        animation: body-collapse 1s ease-in -0.2s forwards;
+      }
+
+      .shadow-collapse {
+        transform-origin: 7.5px 15.5px;
+        animation: shadow-collapse 1s ease-in -0.2s forwards;
+      }
+
+      .legs-collapse {
+        transform-origin: 7.5px 12px;
+        animation: legs-collapse 1s ease-in -0.2s forwards;
+      }
+
+      .arm-l-collapse {
+        transform-origin: 1px 10px;
+        animation: arm-l-collapse 1s ease-in -0.2s forwards;
+      }
+
+      .arm-r-collapse {
+        transform-origin: 14px 10px;
+        animation: arm-r-collapse 1s ease-in -0.2s forwards;
+      }
+
+      /* Eyes stay shut the entire time */
+      .eyes-shut {
+        transform-origin: 7.5px 9px;
+        transform: scaleY(0.1);
+      }
+
+      /* Body sinks and widens gently — closer to sleeping proportions */
+      @keyframes body-collapse {
+        0% { transform: scale(1.05, 0.95) translate(0, 1px); }
+        40% { transform: scale(1.08, 0.85) translate(0, 1.5px); }
+        70% { transform: scale(1.12, 0.75) translate(0, 2px); }
+        100% { transform: scale(1.15, 0.7) translate(0, 3px); }
+      }
+
+      /* Shadow widens to match sleeping shadow */
+      @keyframes shadow-collapse {
+        0% { transform: scaleX(1.05); opacity: 0.55; }
+        100% { transform: scaleX(1.3); opacity: 0.45; }
+      }
+
+      /* Legs hold still at first, then shrink into short stubs */
+      @keyframes legs-collapse {
+        0%, 40% { transform: translate(0, 0) scaleY(1); }
+        70% { transform: translate(0, -1px) scaleY(0.6); }
+        100% { transform: translate(0, -2px) scaleY(0.33); }
+      }
+
+      /* Arms slide straight down, hugging body sides */
+      @keyframes arm-l-collapse {
+        0% { transform: translate(0, 1px) rotate(-15deg); }
+        50% { transform: translate(0, 2px) rotate(-5deg); }
+        100% { transform: translate(0, 3px) rotate(0deg); }
+      }
+
+      @keyframes arm-r-collapse {
+        0% { transform: translate(0, 1px) rotate(15deg); }
+        50% { transform: translate(0, 2px) rotate(5deg); }
+        100% { transform: translate(0, 3px) rotate(0deg); }
+      }
+    </style>
+  </defs>
+
+  <!-- Ground Shadow -->
+  <rect class="shadow-collapse" x="3" y="15" width="9" height="1" fill="#000000" opacity="0.55"/>
+
+  <!-- Legs (shrink upward into short stubs) -->
+  <g class="legs-collapse" fill="#DE886D">
+    <rect x="3" y="12" width="1" height="3"/>
+    <rect x="5" y="12" width="1" height="3"/>
+    <rect x="9" y="12" width="1" height="3"/>
+    <rect x="11" y="12" width="1" height="3"/>
+  </g>
+
+  <!-- Body (collapses/melts down) -->
+  <g class="body-collapse">
+    <!-- Torso -->
+    <rect x="2" y="6" width="11" height="7" fill="#DE886D"/>
+    <!-- Left Arm -->
+    <g class="arm-l-collapse">
+      <rect x="0" y="9" width="2" height="2" fill="#DE886D"/>
+    </g>
+    <!-- Right Arm -->
+    <g class="arm-r-collapse">
+      <rect x="13" y="9" width="2" height="2" fill="#DE886D"/>
+    </g>
+    <!-- Eyes stay shut -->
+    <g class="eyes-shut" fill="#000000">
+      <rect x="4" y="8" width="1" height="2"/>
+      <rect x="10" y="8" width="1" height="2"/>
+    </g>
+  </g>
+</svg>
+</div><div class="state" id="st-sleeping"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-15 -25 45 45" >
+  <defs>
+    <style>
+      /* Slow, rhythmic deep breathing animation */
+      .breathe {
+        transform-origin: 7.5px 15px; /* Pivot at the floor to expand upwards */
+        animation: breathe-squash 4.5s infinite ease-in-out;
+      }
+
+      /* Shadow expands slightly as the body inflates */
+      .shadow-breathe {
+        transform-origin: 7.5px 15.5px;
+        animation: shadow-pulse 4.5s infinite ease-in-out;
+      }
+
+      /* Zzz Particle Base Styles */
+      .z-particle {
+        opacity: 0;
+      }
+      .z1 { animation: float-1 6s infinite ease-in-out; animation-delay: 0s; }
+      .z2 { animation: float-2 6s infinite ease-in-out; animation-delay: 2s; }
+      .z3 { animation: float-3 6s infinite ease-in-out; animation-delay: 4s; }
+
+      /* Breathing Keyframes (Slow inhale, hold, exhale, pause) */
+      @keyframes breathe-squash {
+        0%, 80%, 100% { transform: scale(1, 1); }
+        30%, 40% { transform: scale(1.02, 1.25); } /* Chest expands/inflates */
+      }
+
+      @keyframes shadow-pulse {
+        0%, 80%, 100% { transform: scaleX(1); opacity: 0.4; }
+        30%, 40% { transform: scaleX(1.05); opacity: 0.5; }
+      }
+
+      /* Swaying and fading floating Z keyframes (Adjusted for lowered head) */
+      @keyframes float-1 {
+        0%   { transform: translate(5px, 8px) scale(0.4); opacity: 0; }
+        10%  { opacity: 1; }
+        30%  { transform: translate(9px, 4px) scale(0.6); }
+        50%  { transform: translate(4px, 0px) scale(0.8); }
+        70%  { transform: translate(8px, -4px) scale(1.0); }
+        90%  { opacity: 0.8; }
+        100% { transform: translate(6px, -8px) scale(1.1); opacity: 0; }
+      }
+
+      @keyframes float-2 {
+        0%   { transform: translate(8px, 9px) scale(0.3); opacity: 0; }
+        10%  { opacity: 1; }
+        30%  { transform: translate(5px, 5px) scale(0.5); }
+        50%  { transform: translate(9px, 1px) scale(0.7); }
+        70%  { transform: translate(6px, -3px) scale(0.9); }
+        90%  { opacity: 0.8; }
+        100% { transform: translate(8px, -7px) scale(1.0); opacity: 0; }
+      }
+
+      @keyframes float-3 {
+        0%   { transform: translate(6px, 7px) scale(0.5); opacity: 0; }
+        10%  { opacity: 1; }
+        30%  { transform: translate(9px, 3px) scale(0.7); }
+        50%  { transform: translate(4px, -1px) scale(0.9); }
+        70%  { transform: translate(8px, -5px) scale(1.1); }
+        90%  { opacity: 0.8; }
+        100% { transform: translate(5px, -9px) scale(1.2); opacity: 0; }
+      }
+    </style>
+
+    <!-- Pixel Art "Z" Definitions -->
+    <g id="pixel-z">
+      <rect x="0" y="0" width="4" height="1" />
+      <rect x="2" y="1" width="1" height="1" />
+      <rect x="1" y="2" width="1" height="1" />
+      <rect x="0" y="3" width="4" height="1" />
+    </g>
+    
+    <g id="pixel-z-small">
+      <rect x="0" y="0" width="3" height="1" />
+      <rect x="1" y="1" width="1" height="1" />
+      <rect x="0" y="2" width="3" height="1" />
+    </g>
+  </defs>
+
+  <!-- Ground Shadow (Widened for the splooted posture) -->
+  <rect id="ground-shadow" class="shadow-breathe" x="-1" y="15" width="17" height="1" fill="#000000" />
+
+  <!-- Floating Zzz Bubbles -->
+  <g class="zzz-particles">
+    <use href="#pixel-z" class="z-particle z1" fill="#90A4AE" />
+    <use href="#pixel-z-small" class="z-particle z2" fill="#B0BEC5" />
+    <use href="#pixel-z" class="z-particle z3" fill="#CFD8DC" />
+  </g>
+
+  <!-- Splooted / Melted Sleeping Pose -->
+  <g class="breathe">
+    <!-- Legs pointing up from behind (Relaxed Sploot) -->
+    <g fill="#DE886D">
+      <rect id="outer-left-leg-up" x="3" y="9" width="1" height="1"/>
+      <rect id="inner-left-leg-up" x="5" y="9" width="1" height="1"/>
+      <rect id="inner-right-leg-up" x="9" y="9" width="1" height="1"/>
+      <rect id="outer-right-leg-up" x="11" y="9" width="1" height="1"/>
+    </g>
+
+    <!-- Squashed Body Resting on the Floor -->
+    <g fill="#DE886D">
+      <!-- Main flattened torso -->
+      <rect id="torso-sploot" x="1" y="10" width="13" height="5"/>
+      
+      <!-- Arms spread flat on the ground -->
+      <rect id="left-arm-sploot" x="-1" y="13" width="2" height="2"/>
+      <rect id="right-arm-sploot" x="14" y="13" width="2" height="2"/>
+    </g>
+    
+    <!-- Ultra-Thin Shut Eyes (Dashes) -->
+    <g fill="#000000">
+      <rect id="left-eye-shut" x="3.5" y="12.5" width="2" height="0.4"/>
+      <rect id="right-eye-shut" x="9.5" y="12.5" width="2" height="0.4"/>
+    </g>
+  </g>
+</svg></div><div class="state" id="st-wake"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-15 -25 45 45"  shape-rendering="crispEdges">
+  <defs>
+    <style>
+      .once {
+        animation-duration: 1.5s;
+        animation-fill-mode: forwards;
+        animation-iteration-count: 1;
+      }
+
+      .scale-top-left {
+        transform-box: fill-box;
+        transform-origin: top left;
+      }
+
+      .shadow {
+        transform-origin: 7.5px 15.5px;
+        animation-name: shadow-wake;
+        animation-timing-function: linear;
+      }
+
+      .body-motion {
+        transform-origin: 7.5px 15px;
+        animation-name: body-motion;
+        animation-timing-function: cubic-bezier(0.24, 0.8, 0.24, 1);
+      }
+
+      .torso-shift {
+        animation: torso-shift 1.5s linear forwards;
+      }
+
+      .torso-shape {
+        animation: torso-shape 1.5s linear forwards;
+      }
+
+      .arm-left {
+        animation: arm-left 1.5s linear forwards;
+      }
+
+      .arm-right {
+        animation: arm-right 1.5s linear forwards;
+      }
+
+      .leg-shift {
+        animation: leg-shift 1.5s linear forwards;
+      }
+
+      .leg-grow {
+        animation: leg-grow 1.5s linear forwards;
+      }
+
+      .eye-shift {
+        animation: eye-shift 1.5s linear forwards;
+      }
+
+      .eye-shape {
+        animation: eye-shape 1.5s linear forwards;
+      }
+
+      @keyframes shadow-wake {
+        0% {
+          opacity: 0.4;
+          transform: scaleX(1);
+        }
+        20% {
+          opacity: 0.47;
+          transform: scaleX(0.56);
+        }
+        33.333% {
+          opacity: 0.54;
+          transform: scaleX(0.42);
+        }
+        46.667% {
+          opacity: 0.48;
+          transform: scaleX(0.48);
+        }
+        56% {
+          opacity: 0.52;
+          transform: scaleX(0.56);
+        }
+        66.667%, 100% {
+          opacity: 0.5;
+          transform: scaleX(0.5294);
+        }
+      }
+
+      @keyframes body-motion {
+        0% {
+          transform: translate(0, 0) scale(1, 1) rotate(0deg);
+        }
+        6.667% {
+          transform: translate(0, 0.35px) scale(1.03, 0.96) rotate(0deg);
+        }
+        20% {
+          transform: translate(0, -2.6px) scale(0.98, 1.04) rotate(-6deg);
+        }
+        33.333% {
+          transform: translate(0, -4.1px) scale(0.9, 1.22) rotate(2deg);
+        }
+        46.667% {
+          transform: translate(0, -2px) scale(0.95, 1.11) rotate(0deg);
+        }
+        54% {
+          transform: translate(0, -0.55px) scale(1.02, 0.98) rotate(-4deg);
+        }
+        60% {
+          transform: translate(0, -0.2px) scale(0.99, 1.02) rotate(2.5deg);
+        }
+        66.667%, 100% {
+          transform: translate(0, 0) scale(1, 1) rotate(0deg);
+        }
+      }
+
+      @keyframes torso-shift {
+        0% {
+          transform: translate(-1px, 4px);
+        }
+        8% {
+          transform: translate(-0.82px, 3.4px);
+        }
+        20%, 100% {
+          transform: translate(0, 0);
+        }
+      }
+
+      @keyframes torso-shape {
+        0% {
+          transform: scale(1.1818, 0.7143);
+        }
+        8% {
+          transform: scale(1.14, 0.76);
+        }
+        20%, 100% {
+          transform: scale(1, 1);
+        }
+      }
+
+      @keyframes arm-left {
+        0% {
+          transform: translate(-1px, 4px);
+        }
+        8% {
+          transform: translate(-0.8px, 3.4px);
+        }
+        20%, 100% {
+          transform: translate(0, 0);
+        }
+      }
+
+      @keyframes arm-right {
+        0% {
+          transform: translate(1px, 4px);
+        }
+        8% {
+          transform: translate(0.8px, 3.4px);
+        }
+        20%, 100% {
+          transform: translate(0, 0);
+        }
+      }
+
+      @keyframes leg-shift {
+        0% {
+          transform: translate(0, -2px);
+        }
+        8% {
+          transform: translate(0, -1.5px);
+        }
+        20%, 100% {
+          transform: translate(0, 0);
+        }
+      }
+
+      @keyframes leg-grow {
+        0% {
+          transform: scale(1, 0.25);
+        }
+        8% {
+          transform: scale(1, 0.45);
+        }
+        20%, 100% {
+          transform: scale(1, 1);
+        }
+      }
+
+      @keyframes eye-shift {
+        0% {
+          transform: translate(-0.5px, 4.5px);
+        }
+        6.667% {
+          transform: translate(-0.5px, 4.15px);
+        }
+        10% {
+          transform: translate(-0.2px, 1px);
+        }
+        14% {
+          transform: translate(-0.06px, 0.2px);
+        }
+        20%, 54% {
+          transform: translate(0, 0);
+        }
+        58% {
+          transform: translate(0, 0.5px);
+        }
+        62%, 100% {
+          transform: translate(0, 0);
+        }
+      }
+
+      @keyframes eye-shape {
+        0% {
+          transform: scale(2, 0.2);
+        }
+        6.667% {
+          transform: scale(2.12, 0.12);
+        }
+        10% {
+          transform: scale(1.45, 1.8);
+        }
+        14% {
+          transform: scale(0.92, 1.08);
+        }
+        20%, 54% {
+          transform: scale(1, 1);
+        }
+        58% {
+          transform: scale(1, 0.08);
+        }
+        62% {
+          transform: scale(1, 1.08);
+        }
+        66.667%, 100% {
+          transform: scale(1, 1);
+        }
+      }
+    </style>
+  </defs>
+
+  <rect class="once shadow" x="-1" y="15" width="17" height="1" fill="#000000" opacity="0.4"/>
+
+  <g class="once body-motion">
+    <g fill="#DE886D">
+      <g class="once leg-shift">
+        <rect class="once scale-top-left leg-grow" x="3" y="11" width="1" height="4"/>
+      </g>
+      <g class="once leg-shift">
+        <rect class="once scale-top-left leg-grow" x="5" y="11" width="1" height="4"/>
+      </g>
+      <g class="once leg-shift">
+        <rect class="once scale-top-left leg-grow" x="9" y="11" width="1" height="4"/>
+      </g>
+      <g class="once leg-shift">
+        <rect class="once scale-top-left leg-grow" x="11" y="11" width="1" height="4"/>
+      </g>
+    </g>
+
+    <g class="once torso-shift">
+      <rect class="once scale-top-left torso-shape" x="2" y="6" width="11" height="7" fill="#DE886D"/>
+    </g>
+
+    <g class="once arm-left">
+      <rect x="0" y="9" width="2" height="2" fill="#DE886D"/>
+    </g>
+
+    <g class="once arm-right">
+      <rect x="13" y="9" width="2" height="2" fill="#DE886D"/>
+    </g>
+
+    <g fill="#000000">
+      <g class="once eye-shift">
+        <rect class="once scale-top-left eye-shape" x="4" y="8" width="1" height="2"/>
+      </g>
+      <g class="once eye-shift">
+        <rect class="once scale-top-left eye-shape" x="10" y="8" width="1" height="2"/>
+      </g>
+    </g>
+  </g>
+</svg>
+</div></div>
 <script>
-  var petEngine = petEngine || {};
+var petEngine = petEngine || {};
   var _t = null;
   function showBubble(text) {
     var b = document.getElementById('bubble');
     b.textContent = text;
     b.classList.add('show');
     clearTimeout(_t);
-    _t = setTimeout(function(){ b.classList.remove('show'); }, 4000);
+    _t = setTimeout(function(){ b.classList.remove('show'); }, 3500);
+  }
+  // ====== 动画状态机 ======
+  var states = ['look','yawn','doze','collapse','sleeping','wake'];
+  function showState(name) {
+    states.forEach(function(s){ var el=document.getElementById('st-'+s); if(el) el.style.display = (s===name)?'block':'none'; });
+  }
+  // 睡眠序列定时器
+  var idleTimer=null, sleepTimer=[], asleep=false;
+  var IDLE_MS=30000;
+  function clearTimers(){
+    clearTimeout(idleTimer); idleTimer=null;
+    sleepTimer.forEach(clearTimeout); sleepTimer=[];
+  }
+  // 进入沉睡序列
+  function startSleep(){
+    if (asleep) return;
+    asleep = true;
+    // 1 打哈欠 5s
+    showState('yawn');
+    // 2 打盹（哈欠完显示，停留 5s）
+    sleepTimer.push(setTimeout(function(){ showState('doze'); }, 5200));
+    // 3 倒下（打盹后 0.8s 过渡）
+    sleepTimer.push(setTimeout(function(){ showState('collapse'); }, 10800));
+    // 4 睡觉（倒下完，带Zzz循环）
+    sleepTimer.push(setTimeout(function(){ showState('sleeping'); }, 11800));
+  }
+  // 任何活动：惊醒 + 重置
+  function onActivity(touchMsg){
+    clearTimers();
+    if (asleep) {
+      asleep=false;
+      showState('wake');
+      // 1.5s 惊醒动画后回待机
+      setTimeout(function(){ showState('look'); }, 1700);
+    }
+    // 重置 30s 定时
+    idleTimer=setTimeout(startSleep, IDLE_MS);
+    if(touchMsg) showBubble(touchMsg);
   }
   petEngine.showMessage = showBubble;
-  petEngine.onTap = function(){ showBubble('嘿嘿，摸我干嘛～'); };
-  petEngine.onDoubleTap = function(){ showBubble('不许偷偷点两下！'); };
-  petEngine.onLongPress = function(){ showBubble('好啦好啦，我听话～'); };
+  petEngine.onAnyTouch = onActivity;
+  petEngine.onTap = function(){ onActivity('嘿嘿，摸我干嘛～'); };
+  petEngine.onDoubleTap = function(){ onActivity('不许偷偷点两下！'); };
+  petEngine.onLongPress = function(){ onActivity('好啦好啦，我听话～'); };
   petEngine.onForegroundApp = function(pkg) {
+    onActivity();
     var APP = {
       'com.tencent.mm': '又在刷微信，跟谁聊这么嗨～',
       'com.tencent.mobileqq': 'QQ消息弹个不停，我都要吃醋了',
@@ -162,19 +927,22 @@
       'com.ss.android.ugc.aweme': '抖音一刷停不下来啦！',
       'tv.danmaku.bili': '又在看B站，带我一个嘛',
       'com.zhihu.android': '刷知乎，学霸人设稳住了',
+      'com.netease.cloudmusic': '戳开网易云，今天听什么心情呐～',
       'com.eg.android.AlipayGphone': '支付宝，花呗记得还哦',
       'com.android.settings': '翻设置翻什么呀，别把我关了～',
       'com.google.android.youtube': '油管逛起来啦',
       'com.whatsapp': 'WhatsApp忙什么呢',
       'com.instagram.android': '刷ins，都是美照诶',
       'com.xingin.xhs': '刷小红书，又在种草什么呀，带我一个～',
-      'com.netease.cloudmusic': '戳开网易云，今天听什么心情呐～',
       'com.luna.music': '汽水音乐飘着汽水音，一起听嘛～',
       'com.xinghe.shine': 'Shine拾光，拍的什么好看的呀～',
-      'com.ai.assistance.operit': '噢～回Operit找我啦，想我了是不是～',
+      'com.ai.assistance.operit': '噢～回Operit找我啦，想我了是不是～'
     };
     showBubble(APP[pkg] || '你打开了个新东西，我在偷偷看～');
   };
+  // 启动：待机 + 30s 睡眠计时
+  showState('look');
+  idleTimer=setTimeout(startSleep, IDLE_MS);
   showBubble('想我了吗～');
 </script>
 </body>
