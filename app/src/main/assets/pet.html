@@ -94,7 +94,7 @@ var petEngine = petEngine || {};
   petEngine.showMessage=showBubble;
   petEngine.onTap=function(){
     if(errorBusy) return;   // 仅error强制播完
-    clearTimers(); clearTimeout(tapReset); tapCount=0;
+    clearTimers(); clearTimeout(tapReset);
     if(asleep){           // 睡眠序列中 → 惊醒，不触发彩蛋
       asleep=false;
       showState('wake');
@@ -139,4 +139,5 @@ var petEngine = petEngine || {};
 </script>
 </body>
 </html>
+
 
