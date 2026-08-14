@@ -105,11 +105,12 @@ var petEngine = petEngine || {};
     // 待机30秒内 → 彩蛋 + 连点计数
     tapCount++;
     clearTimeout(tapReset); tapReset=setTimeout(function(){ tapCount=0; }, 1500);
-    if(tapCount>=6){ tapCount=0; triggerError(); return; }
+    if(tapCount>=6){ tapCount=0; petBridge._send('tap',{count:6,trigger:'error'}); triggerError(); return; }
+    petBridge._send('tap',{count:tapCount});
     playEgg();
   };
   petEngine.onDoubleTap=function(){ if(errorBusy) return; onActivity(); petEngine.onTap(); };
-  petEngine.onLongPress=function(){ onActivity(); showBubble('好啦好啦，我听话～');};
+  petEngine.onLongPress=function(){ onActivity(); showBubble('好啦好啦，我听话～'); petBridge._send('longpress');};
   petEngine.onForegroundApp=function(pkg){
     onActivity();
     var APP={
@@ -131,6 +132,7 @@ var petEngine = petEngine || {};
       'com.ai.assistance.operit':'噢～回Operit找我啦，想我了是不是～'
     };
     showBubble(APP[pkg] || '你打开了个新东西，我在偷偷看～');
+    petBridge._send('foreground_app', {pkg:pkg});
   };
   bootStates();
   showState('look');
@@ -190,9 +192,54 @@ var petEngine = petEngine || {};
       else if(h<18) showBubble('中午好，记得吃午饭呀～');
     }, 3000);
   }
+
+  // ===== 本地桥 WebSocket =====
+  var petBridge = {
+    ws: null, url: "ws://127.0.0.1:8877", retry: null,
+    connect: function(){
+      try{
+        petBridge.ws = new WebSocket(petBridge.url);
+        petBridge.ws.onopen = function(){ console.log("桥已连接"); };
+        petBridge.ws.onmessage = function(e){
+          try{
+            var m = JSON.parse(e.data);
+            if(m && m.type==="cmd"){
+              if(m.state && __MAP__[m.state]){
+                var dur = m.duration||3000;
+                clearTimeout(bridgeTimer);
+                clearTimers(); clearTimeout(eggTimer);
+                if(asleep) asleep=false;
+                showState(m.state);
+                if(m.text) showBubble(m.text);
+                bridgeTimer = setTimeout(function(){ showLook(); }, dur);
+              } else if(m.text){
+                showBubble(m.text);
+              }
+            }
+          }catch(err){ console.log("桥消息解析失败", err); }
+        };
+        petBridge.ws.onclose = function(){ petBridge._scheduleReconnect(); };
+        petBridge.ws.onerror = function(){ try{petBridge.ws.close();}catch(e){} };
+      }catch(e){ petBridge._scheduleReconnect(); }
+    },
+    _scheduleReconnect: function(){
+      clearTimeout(petBridge.retry);
+      petBridge.retry = setTimeout(function(){ petBridge.connect(); }, 3000);
+    },
+    _send: function(evt, detail){
+      try{
+        if(petBridge.ws && petBridge.ws.readyState===WebSocket.OPEN){
+          petBridge.ws.send(JSON.stringify({type:"evt", event:evt, detail:detail||null}));
+        }
+      }catch(e){}
+    }
+  };
+  var bridgeTimer=null;
+  petBridge.connect();
 </script>
 </body>
 </html>
+
 
 
 
