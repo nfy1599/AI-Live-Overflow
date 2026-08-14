@@ -195,7 +195,7 @@ var petEngine = petEngine || {};
 
   // ===== 本地桥 WebSocket =====
   var petBridge = {
-    ws: null, url: "ws://127.0.0.1:8877", retry: null,
+    ws: null, url: "ws://192.168.1.9:8877", retry: null,
     connect: function(){
       try{
         petBridge.ws = new WebSocket(petBridge.url);
