@@ -204,6 +204,7 @@ var petEngine = petEngine || {};
           try{
             var m = JSON.parse(e.data);
             if(m && m.type==="cmd"){
+              petBridge._send('cmd_ack',{state:m.state||null,text:m.text||null});
               if(m.state && __MAP__[m.state]){
                 var dur = m.duration||3000;
                 clearTimeout(bridgeTimer);
