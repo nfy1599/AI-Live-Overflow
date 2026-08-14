@@ -4,6 +4,9 @@ import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.content.BroadcastReceiver
+import android.os.BatteryManager
 import android.graphics.PixelFormat
 import android.os.Build
 import android.os.IBinder
@@ -34,6 +37,26 @@ class OverlayService : Service() {
         startForeground(NOTIFICATION_ID, buildNotification("桌宠蹲在屏幕边啦～"))
         setupOverlay()
         startForegroundAppWatch()
+        startBatteryWatch()
+    }
+
+    private fun startBatteryWatch() {
+        val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+        registerReceiver(batteryReceiver, filter)
+    }
+    private val batteryReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            try {
+                val status = intent?.getIntExtra(BatteryManager.EXTRA_STATUS, -1) ?: -1
+                val charging = (status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL)
+                val level = intent?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
+                val scale = intent?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
+                val pct = if (scale > 0) (level * 100 / scale) else level
+                overlayView?.evaluateJavascript(
+                    "window.petEngine && window.petEngine.onBattery($charging, $pct)", null)
+            } catch (t: Throwable) {
+            }
+        }
     }
     private fun startForegroundAppWatch() {
         handler.post(object : Runnable {
@@ -167,3 +190,4 @@ class OverlayService : Service() {
         super.onDestroy()
     }
 }
+
